@@ -21,7 +21,7 @@ import java.util.Objects;
 
 @RestController
 @Slf4j
-@CrossOrigin(origins="https://stockmarketapp-ui.azurewebsites.net/")
+@CrossOrigin
 @RequestMapping(Constants.COMPANY_V1_PATH)
 public class CompanyController {
 
