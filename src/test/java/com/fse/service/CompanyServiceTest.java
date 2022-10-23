@@ -17,6 +17,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.ArrayList;
@@ -37,6 +39,9 @@ public class CompanyServiceTest {
     private StockPriceRepository stockPriceRepository;
     @Mock
     private CompanyMapper companyMapper;
+
+    @Mock
+    private AggregationResults<StockPrice> aggregationResults;
 
     CompanyDto companyDto;
 
@@ -80,7 +85,7 @@ public class CompanyServiceTest {
         stockPrice.setCompanyCode("company1");
         stockPrice.setPrice(14.50);
         Mockito.when(companyRepository.findAll()).thenReturn(companies);
-        Mockito.when(mongoTemplate.find(Mockito.any(),Mockito.eq(StockPrice.class))).thenReturn(stockPrices);
+        Mockito.when(mongoTemplate.aggregate(Mockito.any(Aggregation.class),Mockito.anyString(),Mockito.eq(StockPrice.class))).thenReturn(aggregationResults);
         CompanyAndStockDto companyAndStockDto = new CompanyAndStockDto();
         companyAndStockDto.setCompanyCode("company1");
         Mockito.when(companyMapper.getCompanyAndStockDto(Mockito.any())).thenReturn(companyAndStockDto);

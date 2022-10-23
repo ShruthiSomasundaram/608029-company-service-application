@@ -2,7 +2,6 @@ package com.fse.constants;
 
 public class Constants {
 
-
     private Constants() {
 
     }
@@ -14,4 +13,6 @@ public class Constants {
     public static final String DUPLICATE_COMPANY_CODE = "companyCode already exists";
     public static final String READ_SUCCESSFULL = "Retrieved company details successfully";
     public static final String READ_ERROR = "Exception occurred while retrieving company details";
+    public static final String PRICE = "price";
+    public static final String  STOCK_PRICE_COLLECTION = "stockPrice";
 }

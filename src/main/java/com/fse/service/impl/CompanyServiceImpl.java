@@ -10,15 +10,19 @@ import com.fse.model.StockPrice;
 import com.fse.repository.StockPriceRepository;
 import com.fse.service.CompanyService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.util.bcel.Const;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
 
 @Service
 @Slf4j
@@ -65,11 +69,16 @@ public class CompanyServiceImpl implements CompanyService {
         log.info("CompanyServiceImpl class getCompanies method - begin");
         List<Company> companies = companyRepository.findAll();
         List<String> companyCodes = companies.stream().map(Company::getCompanyCode).collect(Collectors.toList());
-        Query query = new Query();
-        query.addCriteria(Criteria.where(Constants.COMPANY_CODE).in(companyCodes));
-        query.with(Sort.by(Sort.Direction.DESC, Constants.DATE)).limit(1);
-        List<StockPrice> stockPrices = mongoTemplate.find(query, StockPrice.class);
-        Map<String, StockPrice> stockPriceMap = stockPrices.stream().collect(Collectors.toMap(StockPrice::getCompanyCode, stockPrice -> stockPrice));
+        MatchOperation filterCompany= match(Criteria.where(Constants.COMPANY_CODE).in(companyCodes));
+        SortOperation sortByDate = sort(Sort.by(Sort.Direction.DESC, Constants.DATE));
+        GroupOperation groupByCompanyCode = group(Constants.COMPANY_CODE)
+                .first(Constants.PRICE).as(Constants.PRICE);
+        Aggregation aggregation = newAggregation(
+                filterCompany, sortByDate, groupByCompanyCode);
+        AggregationResults<StockPrice> result = mongoTemplate.aggregate(
+                aggregation, Constants.STOCK_PRICE_COLLECTION, StockPrice.class);
+        List<StockPrice> stockPrices = result.getMappedResults();
+        Map<String, StockPrice> stockPriceMap = stockPrices.stream().collect(Collectors.toMap(StockPrice::getId, stockPrice -> stockPrice));
         List<CompanyAndStockDto> companyAndStockDto = populateCompanyAndStockDto(companies, stockPriceMap);
         log.info("CompanyServiceImpl class getCompanies method - end");
         return companyAndStockDto;
